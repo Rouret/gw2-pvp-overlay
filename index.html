@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>PvP Overlay</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;1,400&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        #app {
+            width: 300px;
+            height: 150px;
+            display: flex;
+            flex-direction: row;
+            background: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSO5OCcg1CWS4Z8n_HfA2Teagd8kcPEDL_HoQ&usqp=CAU");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 15px;
+        }
+        
+        .image {
+            width: 45%;
+            height: 100%;
+        }
+        
+        .points {
+            width: 55%;
+            height: 100%;
+        }
+        
+        .center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        p {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 55px;
+            color: white;
+            background: black;
+            border-radius: 10px;
+            padding: 5px;
+        }
+        
+        img {
+            width: 100%;
+        }
+    </style>
+    <div id="app">
+        <div class="image center">
+            <!-- ELO IMAGE -->
+            <img id="eloImg">
+        </div>
+        <div class="points center">
+            <!-- ELO TEXT -->
+            <p id="eloPoint"></p>
+        </div>
+    </div>
+
+    <script>
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const URL_STANDING = "https://api.guildwars2.com/v2/pvp/standings"
+        const URL_STAT = "https://api.guildwars2.com/v2/pvp/stats"
+        const TOKEN = urlParams.get("api_key")
+        const ELO_IMG_ELM = document.getElementById("eloImg")
+        const ELO_POINT_ELM = document.getElementById("eloPoint")
+
+        console.group("INFO")
+        console.log("Taille de la fenêtre : 300x150")
+        console.log("Param : api_key")
+        console.groupEnd()
+        const ELO = {
+            BRONZE: "https://wiki.guildwars2.com/images/1/1e/Bronze_Division_Background.png",
+            SILVER: "https://wiki.guildwars2.com/images/c/c3/Silver_Division_Background.png",
+            GOLD: "https://wiki.guildwars2.com/images/1/1e/Gold_Division_Background.png",
+            PLATINUM: "https://wiki.guildwars2.com/images/e/ed/Platinum_Division_Background.png",
+            LEGENDARY: "https://wiki.guildwars2.com/images/6/62/Legendary_Division_Background.png"
+        }
+
+        function getElo(points) {
+            if (points <= 900) {
+                return ELO.BRONZE
+            } else if (points <= 1200) {
+                return ELO.SILVER
+            } else if (points <= 1500) {
+                return ELO.GOLD
+            } else if (points <= 1800) {
+                return ELO.PLATINUM
+            }
+            return ELO.LEGENDARY
+        }
+
+        async function doRequest(url) {
+            await fetch(url).then(res => res.json())
+                .then(res => {
+                    let points = res[res.length - 1].current.rating
+                    ELO_IMG_ELM.src = getElo(points)
+                    ELO_POINT_ELM.innerHTML = points
+                })
+        }
+
+        if (TOKEN == null) {
+            ELO_IMG_ELM.src = "https://wiki.guildwars2.com/images/2/2f/2604564.png"
+        } else {
+            var url = URL_STANDING + "?access_token=" + TOKEN
+            doRequest(url)
+            setInterval(() => {
+                doRequest(url)
+            }, 360000)
+        }
+    </script>
+</body>
+
+</html>
