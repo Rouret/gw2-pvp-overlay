@@ -249,7 +249,9 @@
                     lastGamePlayedInfo()
                     setInterval(() => {
                         getRankedPoint()
-                    }, 360000)
+                        await lastGamePlayed()
+                        lastGamePlayedInfo()
+                    }, 180000)
                 }
             }
         }
