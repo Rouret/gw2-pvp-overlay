@@ -19,7 +19,11 @@ La taille de l'overlay est **300x150** :
 
 ![Source OBS](docs/doc_source_obs.png)
 
-Et voilà !!! Votre beau overlay !
+Et voilà !!! Votre beau overlay ! Avec :
+ - Votre Elo (gold, silver ...)
+- Votre ranking de cette saison
+- Votre classe favorite
+- Le résultat de votre dernière game
 
 ![Source OBS](docs/doc_result.PNG)
 
