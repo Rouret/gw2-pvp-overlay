@@ -21,3 +21,5 @@ La taille de l'overlay est **300x150** :
 
 Et voilà !!! Votre beau overlay !
 
+![Source OBS](docs/doc_result.PNG)
+
