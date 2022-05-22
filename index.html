@@ -21,7 +21,7 @@
             height: 150px;
             display: flex;
             flex-direction: row;
-            background: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSO5OCcg1CWS4Z8n_HfA2Teagd8kcPEDL_HoQ&usqp=CAU");
+            background: url("https://d3b4yo2b5lbfy.cloudfront.net/wp-content/uploads/wallpapers/wintersday-night-mood-1920x1200.jpg");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -46,15 +46,49 @@
         
         p {
             font-family: 'Roboto Condensed', sans-serif;
-            font-size: 55px;
+            font-size: 60px;
+            font-weight: 400;
             color: white;
-            background: black;
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 10px;
-            padding: 5px;
+            padding: 3px;
         }
         
         img {
             width: 100%;
+        }
+        
+        .col {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #favoriteProfession {
+            position: fixed;
+            left: 255px;
+            top: 0;
+            width: 40px;
+            height: 40px;
+        }
+        
+        #lastRantingChange {
+            font-family: 'Roboto Condensed', sans-serif;
+            position: fixed;
+            left: 245px;
+            top: 115px;
+            width: 40px;
+            height: 40px;
+            color: white;
+            font-size: 32px;
+            font-weight: 400;
+        }
+        
+        .red {
+            color: #ff3a3a !important;
+        }
+        
+        .green {
+            color: #23ff23 !important;
         }
     </style>
     <div id="app">
@@ -64,7 +98,9 @@
         </div>
         <div class="points center">
             <!-- ELO TEXT -->
+            <span id="lastRantingChange"></span>
             <p id="eloPoint"></p>
+            <img id="favoriteProfession">
         </div>
     </div>
 
@@ -72,9 +108,20 @@
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         const URL_STANDING = "https://api.guildwars2.com/v2/pvp/standings"
+        const URL_STATS = "https://api.guildwars2.com/v2/pvp/stats"
+        const URL_SEASON = "https://api.guildwars2.com/v2/pvp/seasons"
+        const URL_ACCOUNT = "https://api.guildwars2.com/v2/account"
+        const URL_PROFESSION = "https://api.guildwars2.com/v2/professions"
+        const URL_MATCH = "https://api.guildwars2.com/v2/pvp/games"
         const TOKEN = urlParams.get("api_key")
         const ELO_IMG_ELM = document.getElementById("eloImg")
         const ELO_POINT_ELM = document.getElementById("eloPoint")
+        const PROF_ELM = document.getElementById("favoriteProfession")
+        const LAST_MATCH_ELM = document.getElementById("lastRantingChange")
+
+        var seasonID = null
+        var favoriteProfession = null
+        var lastIdMatch = null
 
         console.group("INFO")
         console.log("Taille de la fenêtre : 300x150")
@@ -101,24 +148,113 @@
             return ELO.LEGENDARY
         }
 
-        async function doRequest(url) {
-            await fetch(url).then(res => res.json())
+        async function getRankedPoint() {
+            await fetch(URL_STANDING + "?access_token=" + TOKEN)
+                .then(res => res.json())
                 .then(res => {
-                    let points = res[res.length - 1].current.rating
+                    let points = res.find(el => el.season_id === seasonID).current.rating
                     ELO_IMG_ELM.src = getElo(points)
                     ELO_POINT_ELM.innerHTML = points
                 })
         }
 
-        if (TOKEN == null) {
-            ELO_IMG_ELM.src = "https://wiki.guildwars2.com/images/2/2f/2604564.png"
-        } else {
-            var url = URL_STANDING + "?access_token=" + TOKEN
-            doRequest(url)
-            setInterval(() => {
-                doRequest(url)
-            }, 360000)
+        async function loadSeasonId() {
+            await fetch(URL_SEASON).then(res => res.json())
+                .then(res => {
+                    seasonID = res[res.length - 1]
+                })
         }
+
+        async function loadFavoriteProfessions() {
+            await fetch(URL_STATS + "?access_token=" + TOKEN)
+                .then(res => res.json())
+                .then(res => {
+                    const professions = res.professions
+                    const favoriteProfessions = []
+                    var max = {
+                        name: "",
+                        value: 0
+                    }
+                    for (const [key, value] of Object.entries(professions)) {
+                        var sum = 0
+                        for (const [keyChild, valueChild] of Object.entries(professions[key])) {
+                            sum += valueChild
+                        }
+                        favoriteProfessions.push({
+                            name: key,
+                            value: sum
+                        })
+                        if (sum > max.value) {
+                            max.name = key
+                            max.value = sum
+                        }
+                    }
+                    favoriteProfession = max.name
+                })
+        }
+
+        async function displayProfession() {
+            await fetch(URL_PROFESSION + "/" + favoriteProfession.charAt(0).toUpperCase() + favoriteProfession.slice(1))
+                .then(res => res.json())
+                .then(res => {
+                    PROF_ELM.src = res.icon_big
+                })
+        }
+
+        async function lastGamePlayed() {
+            await fetch(URL_MATCH + "?access_token=" + TOKEN)
+                .then(res => res.json())
+                .then(res => {
+                    lastIdMatch = res[0]
+                })
+        }
+
+        async function lastGamePlayedInfo() {
+            await fetch(URL_MATCH + "?access_token=" + TOKEN + "&ids=" + lastIdMatch)
+                .then(res => res.json())
+                .then(res => {
+                    const match = res[0]
+
+                    LAST_MATCH_ELM.classList.remove('red')
+                    LAST_MATCH_ELM.classList.remove('green')
+
+                    if (match.rating_type !== "Ranked") {
+                        LAST_MATCH_ELM.innerHTML = ""
+                    } else {
+                        if (match.result === "Victory") {
+                            LAST_MATCH_ELM.classList.add('green')
+                            LAST_MATCH_ELM.innerHTML = '+'
+                        } else {
+                            LAST_MATCH_ELM.classList.add('red')
+                            LAST_MATCH_ELM.innerHTML = '-'
+                        }
+                        LAST_MATCH_ELM.innerHTML += match.rating_change
+                    }
+
+                })
+        }
+
+        async function init() {
+            if (TOKEN == null) {
+                ELO_IMG_ELM.src = "https://wiki.guildwars2.com/images/2/2f/2604564.png"
+            } else {
+                await loadSeasonId()
+                if (seasonID === null) {
+                    ELO_IMG_ELM.src = "https://wiki.guildwars2.com/images/2/2f/2604564.png"
+                } else {
+                    getRankedPoint()
+                    await loadFavoriteProfessions()
+                    displayProfession()
+                    await lastGamePlayed()
+                    lastGamePlayedInfo()
+                    setInterval(() => {
+                        getRankedPoint()
+                    }, 360000)
+                }
+            }
+        }
+
+        init()
     </script>
 </body>
 
