@@ -226,7 +226,6 @@
                             LAST_MATCH_ELM.innerHTML = '+'
                         } else {
                             LAST_MATCH_ELM.classList.add('red')
-                            LAST_MATCH_ELM.innerHTML = '-'
                         }
                         LAST_MATCH_ELM.innerHTML += match.rating_change
                     }
@@ -247,7 +246,7 @@
                     displayProfession()
                     await lastGamePlayed()
                     lastGamePlayedInfo()
-                    setInterval(() => {
+                    setInterval(async () => {
                         getRankedPoint()
                         await lastGamePlayed()
                         lastGamePlayedInfo()
@@ -255,8 +254,9 @@
                 }
             }
         }
-
         init()
+        setInterval(init,1000*10)
+        
     </script>
 </body>
 
