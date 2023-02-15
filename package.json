@@ -1,0 +1,30 @@
+{
+  "name": "gw2-pvp-overlay",
+  "version": "1.0.0",
+  "description": "Il n'y a rien à installer ! Il suffit de compléter cet URL :",
+  "private": true,
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rouret/gw2-pvp-overlay.git"
+  },
+  "keywords": [
+    "GW2"
+  ],
+  "author": "Lucas Rouret",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rouret/gw2-pvp-overlay/issues"
+  },
+  "homepage": "https://github.com/Rouret/gw2-pvp-overlay#readme",
+  "dependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  }
+}
